@@ -1,0 +1,1 @@
+rename this file to 'api_token.txt', then paste your telegram bot's api token here
