@@ -1,5 +1,4 @@
 from utility.variables import *
-from utility.directory import check_file
 
 ## States
 SLEEPMENU, SLEEPADD = range(2)
@@ -7,12 +6,19 @@ SLEEPMENU, SLEEPADD = range(2)
 # ---------------------------------------------------------------------------------------------------- #
 
 async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    message = "\n".join(["Welcome to the sleep node",
-                         "/sleep_add - Add sleep timing",
-                         "/sleep_view - View sleep log",
-                         "/cancel - Exit node",
-                         "Use command 'sleep_clear' to clear log"
-                         ])
+    user = update.message.from_user
+    print(f"\n>> sleep_node.py > sleep_node > User: {user["username"]}")
+    name = user["first_name"]
+    username = user["username"]
+    if username == master:
+        message = "\n".join(["Welcome to the sleep node",
+                            "/sleep_add - Add sleep timing",
+                            "/sleep_view - View sleep log",
+                            "/cancel - Exit node",
+                            "Use command 'sleep_clear' to clear log"
+                            ])
+    else:
+        message = f"Hey {name} you can't access this node!"
     await update.message.reply_text(message)
     return SLEEPMENU
 
@@ -49,8 +55,8 @@ async def sleep_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return SLEEPMENU
 
 async def sleep_view(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    message = "Getting all sleep timings...\n"
-    sleep_log = sleep_manager(command="get", subcommand="all", input=None)
+    message = "Getting the 10 most recent sleep timings...\n"
+    sleep_log = sleep_manager(command="get", subcommand="recent", input=None)
     if sleep_log:
         message += sleep_log
     elif sleep_log == None:
@@ -73,20 +79,19 @@ async def sleep_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 # ---------------------------------------------------------------------------------------------------- #
 
 def sleep_manager(command: str, subcommand: str, input: str):
-    print(">> sleep_node.py > sleep_manager")
     try:
-        log_path = check_file(file=sleep_log, path=data_path)
+        log_path = check_file(file=sleep_log, folder_path=data_path)
         
         if command == "add":
             with open(log_path, "a") as log:
                 log.write(f"{input[0]}:{input[1]}\n")
-            print(f"> Updated {log_path}")
+            print(f"\n>> sleep_node.py > sleep_manager \n> Updated {log_path}")
             return True
         
         elif command == "get":
             # Check if file is empty
             if os.path.getsize(log_path) == 0:
-                print("> Log file is empty")
+                print("\n>> sleep_node.py > sleep_manager \n> Log file is empty")
             else:
                 with open(log_path, "r") as log:
                     # Return latest date in sleep log
@@ -95,27 +100,31 @@ def sleep_manager(command: str, subcommand: str, input: str):
                         y, m, d = int(last_date[0:4]), int(last_date[5:7]), int(last_date[8:10])
                         last_date = date(y, m, d)
                         return last_date
-                    # Return entire sleep log
-                    elif subcommand == "all":
+                    # Return last 10 records in sleep log
+                    elif subcommand == "recent":
                         result = []
                         i = 0
+                        log = log.readlines()
+                        log_size = len(log)
                         for line in log:
                             date_str, time_str = line.split(":")
                             if i == 0:
                                 date_start = date_str
-                            result.append(f"{time_str[0:2]}:{time_str[2:4]}")
+                            elif log_size - i <= 10:
+                                result.append(f"{time_str[0:2]}:{time_str[2:4]}")
                             i += 1
                         date_end = date_str
-                        result.insert(0, f"{i} records from {date_start} > {date_end}")
+                        result.insert(0, f"Found {log_size} records from {date_start} > {date_end}")
+                        # result.insert(1, f"Showing records from {date_start} > {date_end}")
                         return "\n".join(result)
 
         elif command == "clear":
             with open(log_path, "w") as log:
                 log.truncate(0)
-            print(f"> Cleared {log_path}")
+            print(f"\n>> sleep_node.py > sleep_manager \n> Cleared {log_path}")
             return True
     except Exception as e:
-        print(f"> Error: {e}")
+        print(f"\n>> sleep_node.py > sleep_manager \n> Error: {e}")
         return False
 
 # ---------------------------------------------------------------------------------------------------- #

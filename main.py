@@ -7,7 +7,7 @@ from nodes.expense_node import *
 def main(api_token):
     application = Application.builder().token(api_token).concurrent_updates(True).read_timeout(30).write_timeout(30).build()
 
-    ### /sleep handler ###
+    ### sleep handler ###
     sleep_node_handler = ConversationHandler(
         entry_points = [CommandHandler("sleep", sleep_node)],
         states = {SLEEPMENU: [MessageHandler(filters.Regex("^/sleep_add$"), sleep_add),
@@ -18,7 +18,7 @@ def main(api_token):
         fallbacks = [CommandHandler("cancel", cancel)] )
     application.add_handler(sleep_node_handler)
 
-    ### /news handler ###
+    ### news handler ###
     news_node_handler = ConversationHandler(
         entry_points = [CommandHandler("news", news_node)],
         states = {NEWSMENU: [MessageHandler(filters.Regex("^/news_cna$"), news_cna),
@@ -31,7 +31,7 @@ def main(api_token):
         fallbacks = [CommandHandler("cancel", cancel)] )
     application.add_handler(news_node_handler)
 
-    ### /expense handler ###
+    ### expense handler ###
     expense_node_handler = ConversationHandler(
         entry_points = [CommandHandler("expense", expense_node)],
         states = {EXPMENU: [MessageHandler(filters.Regex("^/expense_add$"), expense_add_type),
@@ -52,12 +52,12 @@ def main(api_token):
                               CommandHandler("cancel", cancel),
                               MessageHandler(filters.TEXT & (~filters.COMMAND), echo)])
 
-    print(">>> hnk_pinboard bot ONLINE.")
+    print("\n>>> hnk_pinboard bot ONLINE.")
     application.run_polling()
 
-# ---------------------------------------------------------------------------------------------------- #
-#                                             Run the bot                                              #
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Run the bot                                        #
+# -------------------------------------------------- #
 token_file = "api_token.txt"
 token_path = data_path + "/" + token_file
 
@@ -66,7 +66,6 @@ if os.path.exists(token_path):
         api_token = f.read()
     if __name__ == '__main__':
         main(api_token)
+        print("\n>>> hnk_pinboard bot OFFLINE.")
 else:
-    print(f">> main.py > Could not find required file '{token_file}'")
-
-print(">>> hnk_pinboard bot OFFLINE.")
+    print(f"\n>> main.py > Could not find required file '{token_file}'")

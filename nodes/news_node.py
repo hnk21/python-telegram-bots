@@ -1,5 +1,4 @@
 from utility.variables import *
-from utility.directory import *
 from utility.scraper import scrape_parse_cna, scrape_parse_gn
 from utility.formatter import format_markdown
 
@@ -9,12 +8,14 @@ NEWSMENU, CNA, GRND = range(3)
 # ---------------------------------------------------------------------------------------------------- #
 
 async def news_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    message = "\n".join(["Welcome to the news node", 
+    user = update.message.from_user
+    print(f"\n>> news_node.py > news_node > User: {user["username"]}")
+    name = user["first_name"]
+    message = "\n".join([f"Welcome to the news node {name}", 
                          "/news_cna - Get news from CNA",
                          "/news_gn - Get news from Ground News",
-                        #  "/news_bb - Get news from Bloomberg",
-                        #  "/news_yh - Get news from Yahoo News",
                         #  "/news_yh - Get news from NHK Japan",
+                        #  "/news_bb - Get news from Bloomberg"
                          "/cancel - Exit node"
                          ])
     await update.message.reply_text(message)
@@ -25,21 +26,19 @@ async def news_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # ---------------------------------------------------------------------------------------------------- #
 
 async def news_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    print(">> news_node.py > news_cna")
     await update.message.reply_text("Getting news from channelnewsasia...")
 
     # Check for .json file
-    to_update, json_path = check_file_update(file=cna_json, path=data_path, hours=hours)
-    print(f"> JSON path = {json_path}")
+    to_update, json_path = check_file_update(file=cna_json, folder_path=data_path, hours=hours)
     global cna_json_path 
     cna_json_path = json_path
 
     # Run scraper if .json file does not exist or needs to be updated
     if to_update:
-        print("> Running scraper.py > scrape_parse_cna to get .json file...")
-        await scrape_parse_cna(save_folder=data_path)
+        print("\n>> news_node.py > news_cna \n> Running scraper.py > scrape_parse_cna to get .json file...")
+        await scrape_parse_cna()
     else:
-        print(f"> '{cna_json}' was last modified less than {hours} hours ago, skipping scraping step.")
+        print(f"\n>> news_node.py > news_cna \n> '{cna_json}' was last modified less than {hours} hours ago, skipping scraping step.")
 
     with open(cna_json_path, 'r') as file:
         news_dict = json.load(file)
@@ -55,7 +54,7 @@ async def news_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                                                         input_field_placeholder="Select category."))
             return CNA
         else:
-            print(f"> Error occurred, news_dict is empty.")
+            print(f"\n>> news_node.py > news_cna \n> Error occurred, news_dict is empty.")
             message = f"Error occurred, returning to news node."
             await update.message.reply_text(message)
             return NEWSMENU
@@ -76,21 +75,19 @@ async def show_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # ---------------------------------------------------------------------------------------------------- #
 
 async def news_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    print(">> news_node.py > news_gn")
     await update.message.reply_text("Getting news from Ground News...")
 
     # Check for .json file
-    to_update, json_path = check_file_update(file=gn_json, path=data_path, hours=hours)
-    print(f"> JSON path = {json_path}")
+    to_update, json_path = check_file_update(file=gn_json, folder_path=data_path, hours=hours)
     global gn_json_path
     gn_json_path = json_path
 
     # Run scraper if .json file does not exist or needs to be updated
     if to_update:
-        print("> Running scraper.py > scrape_parse_gn to get .json file...")
-        await scrape_parse_gn(save_folder=data_path)
+        print("\n>> news_node.py > news_gn \n> Running scraper.py > scrape_parse_gn to get .json file...")
+        await scrape_parse_gn()
     else:
-        print(f"> '{gn_json}' was last modified less than {hours} hours ago, skipping scraping step.")
+        print(f"\n>> news_node.py > news_gn \n> '{gn_json}' was last modified less than {hours} hours ago, skipping scraping step.")
 
     with open(gn_json_path, 'r') as file:
         news_dict = json.load(file)
@@ -104,7 +101,7 @@ async def news_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                                                                         input_field_placeholder="Select category."))
             return GRND
         else:
-            print(f"> Error occurred, news_dict is empty.")
+            print(f"\n>> news_node.py > news_gn \n> Error occurred, news_dict is empty.")
             message = f"Error occurred, returning to news node."
             await update.message.reply_text(message)
             return NEWSMENU

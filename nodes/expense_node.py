@@ -1,5 +1,4 @@
 from utility.variables import *
-from utility.directory import check_file
 
 ## States
 EXPMENU, EXPADD_TYP, EXPADD_AMT, EXPGET_TYP, EXPGET_DATE = range(5)
@@ -8,12 +7,19 @@ reply_keyboard = [["Food", "Stuff"]]
 # ---------------------------------------------------------------------------------------------------- #
 
 async def expense_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "\n".join(["Welcome to the expense node",
-                         "/expense_add - Add an expense",
-                         "/expense_view - View expenses",
-                         "/cancel - Exit node",
-                         "Use command 'expense_clear' to clear log"
-                         ])
+    user = update.message.from_user
+    print(f"\n>> expense_node.py > expense_node > User: {user["username"]}")
+    name = user["first_name"]
+    username = user["username"]
+    if username == master:
+        message = "\n".join(["Welcome to the expense node",
+                            "/expense_add - Add an expense",
+                            "/expense_view - View expenses",
+                            "/cancel - Exit node",
+                            "Use command 'expense_clear' to clear log"
+                            ])
+    else:
+        message = f"Hey {name} you can't access this node!"
     await update.message.reply_text(message)
     return EXPMENU
 
@@ -34,7 +40,7 @@ async def expense_add_amount(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def expense_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
     exp_amount = update.message.text
     exp_date = date.today().strftime("%Y%m%d")
-    message = "Updating expense log..."
+    message = "Updating expense log...\n"
     success = expense_update(expense_date=exp_date, expense_type=exp_type, expense_amount=exp_amount)
     if success:
         message += "done"
@@ -83,22 +89,20 @@ async def expense_clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------------------------------------------------------------------------------------------------- #
 
 def expense_update(expense_date: str, expense_type: str, expense_amount: float):
-    print(">> expense_node.py > expense_update")
     try:
-        log_path = check_file(file=expense_log, path=data_path)
+        log_path = check_file(file=expense_log, folder_path=data_path)
         with open(log_path, "a") as log:
             log.write(f"{expense_date},{expense_type},{expense_amount}\n")
-            print(f"> Added expense: {expense_date},{expense_type},{expense_amount}")
+            print(f"\n>> expense_node.py > expense_update \n> Added expense: {expense_date},{expense_type},{expense_amount}")
         return True
     except Exception as e:
-        print(f"> Error: {e}")
+        print(f"\n>> expense_node.py > expense_update \n> Error: {e}")
         return False
 
 def expense_get(expense_type: str, yearmonth: str):
-    print(">> expense_node.py > expense_get")
     try:
         expense_sum = float()
-        log_path = check_file(file=expense_log, path=data_path)
+        log_path = check_file(file=expense_log, folder_path=data_path)
         with open(log_path, "r") as log:
             expenses = log.readlines()
             for exp in expenses:
@@ -106,23 +110,22 @@ def expense_get(expense_type: str, yearmonth: str):
                 e_date, e_type, e_amount = e[0], e[1], e[2]
                 if e_date[0:6] == yearmonth and e_type == expense_type:
                     expense_sum += float(e_amount)
-        get_result = f"Total amount: ${expense_sum}"
-        print("> Retrieved expenses.")
+        get_result = f"Total amount: ${round(expense_sum, 2)}"
+        print("\n>> expense_node.py > expense_get \n> Retrieved expenses.")
         return get_result
     except Exception as e:
-        print(f"> Error: {e}")
+        print(f"\n>> expense_node.py > expense_get \n> Error: {e}")
         return False
 
 def expense_reset():
-    print(">> expense_node.py > expense_reset")
     try:
-        log_path = check_file(file=expense_log, path=data_path)
+        log_path = check_file(file=expense_log, folder_path=data_path)
         with open(log_path, "w") as log:
             log.truncate(0)
-        print(f"> Cleared {log_path}")
+        print(f"\n>> expense_node.py > expense_reset \n> Cleared {log_path}")
         return True
     except Exception as e:
-        print(f"> Error: {e}")
+        print(f"\n>> expense_node.py > expense_reset \n> Error: {e}")
         return False
 
 # ---------------------------------------------------------------------------------------------------- #

@@ -1,31 +1,29 @@
 from utility.variables import *
 
-async def scrape(url: str, save_path: str) -> bool:
-    print(">> scraper.py > scrape")
-    print(f"> Getting .html from '{url}' ...")
+async def scrape(url: str, html_path: str) -> bool:
     try:
         async with aiohttp.ClientSession() as session:
+            log = f"\n>> scraper.py > scrape \n> Connecting to '{url}'... "
             async with session.get(url) as response:
                 if response.ok:
-                    print(f"> ({response.status}) Successful response, connection established.")
+                    print(log + f"({response.status}) successful response.")
                     html = await response.text()
-                    with open(save_path, "w", encoding="utf-8") as f:
+                    with open(html_path, "w", encoding="utf-8") as f:
                         f.write(html)
-                    print(f"> Updated '{save_path}'")
+                    print(f"\n>> scraper.py > scrape \n> Updated '{html_path}'")
                     return True
                 else:
-                    print(f"> ({response.status}) Connection error.")
+                    print(log + f"({response.status}) connection error.")
                     return False
     except Exception as e:
-        print(f"> Error: {e}")
+        print(f"\n>> scraper.py > scrape \n> Error: {e}")
         return False
 
 # ---------------------------------------------------------------------------------------------------- #
 
-async def scrape_parse_cna(save_folder: str):
-    print(">> scraper.py > scrape_parse_cna")
-    file_path = save_folder + "/" + cna_html
-    success = asyncio.get_event_loop().create_task(scrape(url=cna_url, save_path=file_path))
+async def scrape_parse_cna():
+    file_path = data_path + "/" + cna_html
+    success = asyncio.get_event_loop().create_task(scrape(url=cna_url, html_path=file_path))
     await success
 
     # If scrape is successful, parse html
@@ -46,28 +44,26 @@ async def scrape_parse_cna(save_folder: str):
             news_dict[category].append([title, link])
         
         # Save news_dict into .json
-        with open(save_folder + "/" + cna_json, 'w') as file:
+        with open(data_path + "/" + cna_json, 'w') as file:
             json.dump(news_dict, file, indent=4)
-        print(f"> Updated {cna_json} in {save_folder}")
+        print(f"\n>> scraper.py > scrape_parse_cna \n> Updated {cna_json} in {data_path}")
     else:
-        print(f"> Could not scrape from '{cna_url}' ...")
+        print(f"\n>> scraper.py > scrape_parse_cna \n> Could not scrape from '{cna_url}' ...")
 
 # ---------------------------------------------------------------------------------------------------- #
 
 def filter_attr_href(tag):
     return tag.has_attr('href')
 
-async def scrape_parse_gn(save_folder: str):
-    print(">> scraper.py > scrape_parse_gn")
-
+async def scrape_parse_gn():
     news_dict = defaultdict(list)
 
     for topic in gn_topics:
         gn_url_topic = gn_url + topic
         gn_html = "news_gn_" + topic + ".html"
-        file_path = save_folder + "/" + gn_html
+        file_path = data_path + "/" + gn_html
 
-        success = asyncio.get_event_loop().create_task(scrape(url=gn_url_topic, save_path=file_path))
+        success = asyncio.get_event_loop().create_task(scrape(url=gn_url_topic, html_path=file_path))
         await success
 
         # If scrape is successful, parse html
@@ -95,11 +91,11 @@ async def scrape_parse_gn(save_folder: str):
                     title = title.title()
                     news_dict[gn_topics[topic]].append([title, gn_base + link])
         else:
-            print(f"> Could not scrape from '{gn_url_topic}' ...")
+            print(f"\n>> scraper.py > scrape_parse_gn \n> Could not scrape from '{gn_url_topic}' ...")
         
     # Save news_dict into .json
-    with open(save_folder + "/" + gn_json, 'w') as file:
+    with open(data_path + "/" + gn_json, 'w') as file:
         json.dump(news_dict, file, indent=4)
-    print(f"> Updated {gn_json} in {save_folder}")
+    print(f"\n>> scraper.py > scrape_parse_gn \n> Updated {gn_json} in {data_path}")
 
 # ---------------------------------------------------------------------------------------------------- #
