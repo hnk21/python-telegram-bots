@@ -12,14 +12,14 @@ Using Python, python-telegram-bot, https://docs.python-telegram-bot.org/en/v21.8
 | Ready | Node    | To work on |
 | ----- | ------- | ---------- |
 |   o   | news    | NHK Japan. Bloomberg. |
-|   o   | sleep   | Input checker for 24h time. Sleep analytics. |
-|   x   | expense | . |
+|   o   | sleep   | Sleep analytics. |
+|   o   | expense | . |
 
 --------------------------------------------------------------------------------
 
 # Commands
 
-## Standard
+## Basic
 
 ### /start
 Starts the bot and display opening message.

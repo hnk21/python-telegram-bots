@@ -13,7 +13,7 @@ def main(api_token):
         states = {SLEEPMENU: [MessageHandler(filters.Regex("^/sleep_add$"), sleep_add),
                               MessageHandler(filters.Regex("^/sleep_view$"), sleep_view),
                               MessageHandler(filters.Regex("^/sleep_clear$"), sleep_clear)],
-                  SLEEPADD:  [MessageHandler(filters.Regex("^[0-9]{4}$"), sleep_add_update)]
+                  SLEEPADD:  [MessageHandler(filters.Regex("^(?:(?:[0-1][0-9]|2[0-3])[0-5][0-9])(?:;(?:[0-1][0-9]|2[0-3])[0-5][0-9])*$"), sleep_add_update)]
                   },
         fallbacks = [CommandHandler("cancel", cancel)] )
     application.add_handler(sleep_node_handler)
@@ -39,7 +39,7 @@ def main(api_token):
                             MessageHandler(filters.Regex("^/expense_clear$"), expense_clear)
                             ],
                   EXPADD_TYP: [MessageHandler(filters.Regex("^(Food|Stuff)$"), expense_add_amount)],
-                  EXPADD_AMT: [MessageHandler(filters.Regex("^(?!(?:0|0\\.0|0\\.00)$)[+]?\\d+(\\.\\d|\\.\\d[0-9])?$"), expense_add_update)],
+                  EXPADD_AMT: [MessageHandler(filters.Regex("^\\d+(\\.\\d{1,2})?(\\+\\d+(\\.\\d{1,2})?)*$"), expense_add_update)],
                   EXPGET_TYP:  [MessageHandler(filters.Regex("^(Food|Stuff)$"), expense_view_date)],
                   EXPGET_DATE: [MessageHandler(filters.Regex("^[0-9]{6}$"), expense_view_get)]
                   },

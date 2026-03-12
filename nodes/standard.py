@@ -52,7 +52,7 @@ def get_time():
     days_elapsed = (dt_now - dt_start).days
     days_left = 365 - days_elapsed
 
-    message = f"「{curr_datetime}・Day #{days_elapsed+1}」\n今年の終わり後{days_left}日\n今日の終わり後{time_left}"
+    message = f"「{curr_datetime}・Day #{days_elapsed+1}」\n今年の終わり 後{days_left}日\n今日の終わり 後{time_left}"
     return message
 
 # ---------------------------------------------------------------------------------------------------- #

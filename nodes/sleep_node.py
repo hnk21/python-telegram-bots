@@ -12,7 +12,7 @@ async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     username = user["username"]
     if username == master:
         message = "\n".join(["Welcome to the sleep node",
-                            "/sleep_add - Add sleep timing",
+                            "/sleep_add - Add sleep timings",
                             "/sleep_view - View sleep log",
                             "/cancel - Exit node",
                             "Use command 'sleep_clear' to clear log"
@@ -25,28 +25,30 @@ async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # ---------------------------------------------------------------------------------------------------- #
 
 async def sleep_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    result = sleep_manager(command="get", subcommand="latest", input=None)
+    result = sleep_manager(command="get", subcommand="last", input=None)
     global next_date
+
     # Sleep log is empty
     if result == None:
-        next_date = datetime.now().strftime("%Y-%m-%d")
+        next_date = datetime.now().strftime("%Y%m%d")
+        next_date = date.strptime(next_date, "%Y%m%d")
         message = "\n".join([f"Sleep log is empty",
-                            f"Enter new sleep timing (hhmm) for: {next_date}"
+                            f"Enter new sleep timings (24h format, ; separated) from: {next_date}"
                             ])
     # Sleep log not empty
     else:
         last_date = result
         next_date = last_date + timedelta(days=1)
         message = "\n".join([f"Last date in sleep log: {last_date}",
-                            f"Enter new sleep timing (hhmm) for: {next_date}"
+                            f"Enter new sleep timings (24h format, ; separated) from: {next_date}"
                             ])
     await update.message.reply_text(message, reply_markup=ReplyKeyboardRemove())
     return SLEEPADD
 
 async def sleep_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    new_time = update.message.text
-    message = f"Updating sleep log for {next_date}...\n"
-    success = sleep_manager("add", None, [next_date, new_time])
+    new_times = update.message.text
+    message = f"Updating sleep log from {next_date}...\n"
+    success = sleep_manager("add", None, [next_date, new_times])
     if success:
         message += "done"
     else:
@@ -55,8 +57,8 @@ async def sleep_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return SLEEPMENU
 
 async def sleep_view(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    message = "Getting the 10 most recent sleep timings...\n"
-    sleep_log = sleep_manager(command="get", subcommand="recent", input=None)
+    message = "Fetching all sleep timings...\n"
+    sleep_log = sleep_manager(command="get", subcommand="all", input=None)
     if sleep_log:
         message += sleep_log
     elif sleep_log == None:
@@ -83,8 +85,14 @@ def sleep_manager(command: str, subcommand: str, input: str):
         log_path = check_file(file=sleep_log, folder_path=data_path)
         
         if command == "add":
+            # Split the input string into a list, using ; as the delimiter
+            curr_date = input[0]
+            times = input[1].split(";")
+
             with open(log_path, "a") as log:
-                log.write(f"{input[0]}:{input[1]}\n")
+                for new_time in times:
+                    log.write(f"{curr_date},{new_time}\n")
+                    curr_date += timedelta(days=1)
             print(f"\n>> sleep_node.py > sleep_manager \n> Updated {log_path}")
             return True
         
@@ -94,28 +102,28 @@ def sleep_manager(command: str, subcommand: str, input: str):
                 print("\n>> sleep_node.py > sleep_manager \n> Log file is empty")
             else:
                 with open(log_path, "r") as log:
-                    # Return latest date in sleep log
-                    if subcommand == "latest":
+                    # Return the last date in sleep log
+                    if subcommand == "last":
                         last_date = log.readlines()[-1].split(":")[0]
                         y, m, d = int(last_date[0:4]), int(last_date[5:7]), int(last_date[8:10])
                         last_date = date(y, m, d)
                         return last_date
-                    # Return last 10 records in sleep log
-                    elif subcommand == "recent":
+                    elif subcommand == "all":
                         result = []
                         i = 0
                         log = log.readlines()
                         log_size = len(log)
                         for line in log:
-                            date_str, time_str = line.split(":")
+                            date_str, time_str = line.split(",")
                             if i == 0:
                                 date_start = date_str
-                            elif log_size - i <= 10:
-                                result.append(f"{time_str[0:2]}:{time_str[2:4]}")
+                            # If to retrieve last 10 records
+                            # elif log_size - i <= 10:
+                                # result.append(f"{time_str[0:2]}:{time_str[2:4]}")
+                            result.append(f"{time_str[0:2]}:{time_str[2:4]}")
                             i += 1
                         date_end = date_str
                         result.insert(0, f"Found {log_size} records from {date_start} > {date_end}")
-                        # result.insert(1, f"Showing records from {date_start} > {date_end}")
                         return "\n".join(result)
 
         elif command == "clear":
