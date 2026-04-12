@@ -1,6 +1,6 @@
-from utility.variables import *
+from utility.helper import *
 
-## States
+# States
 EXPMENU, EXPADD_TYP, EXPADD_AMT, EXPGET_TYP, EXPGET_DATE = range(5)
 reply_keyboard = [["Food", "Stuff"]]
 
@@ -26,12 +26,15 @@ async def expense_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------------------------------------------------------------------------------------------------- #
 
 async def expense_add_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Select the type of expense"
-    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, one_time_keyboard=False, input_field_placeholder="Select expense type."))
+    message = "Adding expenses - Select type of expense"
+    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, 
+                                                                              resize_keyboard=True, 
+                                                                              one_time_keyboard=False, 
+                                                                              input_field_placeholder="Select type of expense"))
     return EXPADD_TYP
 
 async def expense_add_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Enter the expense amount(s), multiple amounts must be separated with a '+'"
+    message = "Enter expense amount(s), multiple amounts must be separated with a '+'"
     global exp_type
     exp_type = update.message.text
     await update.message.reply_text(message, reply_markup=ReplyKeyboardRemove())
@@ -42,18 +45,41 @@ async def expense_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
     exp_amounts = update.message.text
     exp_date = date.today().strftime("%Y%m%d")
     success = expense_update(expense_date=exp_date, expense_type=exp_type, expense_amounts=exp_amounts)
-    if success:
-        message += "done"
-    else:
-        message += "failed"
+    message += "done" if success else "failed"
     await update.message.reply_text(message)
     return EXPMENU
+
+def expense_update(expense_date: str, expense_type: str, expense_amounts: str):
+    try:
+        expense_log_path = check_file(file=expense_log, folder_path=data_path)
+        
+        # Check if provided input has multiple amounts
+        if "+" in expense_amounts:
+            expenses = expense_amounts.split("+")
+            total_amount = 0
+            for i in expenses:
+                total_amount += float(i)
+        else:
+            total_amount = float(expense_amounts)
+        total_amount = str(round(total_amount, 2))
+
+        with open(expense_log_path, "a") as log:
+            log.write(f"{expense_date},{expense_type},{total_amount}\n")
+            print(f"\n>> expense_node.py > expense_update \n> Added expense: {expense_date},{expense_type},{total_amount}")
+        
+        return True
+    except Exception as e:
+        print(f"\n>> expense_node.py > expense_update \n> Error: {e}")
+        return False
 
 # ---------------------------------------------------------------------------------------------------- #
 
 async def expense_view_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Viewing expenses\nSelect the type of expense"
-    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, one_time_keyboard=False, input_field_placeholder="Select expense type."))
+    message = "Viewing expenses - Select type of expense"
+    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, 
+                                                                              resize_keyboard=True, 
+                                                                              one_time_keyboard=False, 
+                                                                              input_field_placeholder="Select type of expense"))
     return EXPGET_TYP
 
 async def expense_view_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -67,52 +93,14 @@ async def expense_view_get(update: Update, context: ContextTypes.DEFAULT_TYPE):
     exp_yearmonth = update.message.text
     message = f"Retrieving {exp_type} expenses for {exp_yearmonth}...\n"
     result = expense_get(expense_type=exp_type, yearmonth=exp_yearmonth)
-    if result:
-        message += result
-    else:
-        message += "failed"
+    message += result if result else "failed"
     await update.message.reply_text(message)
     return EXPMENU
-
-# ---------------------------------------------------------------------------------------------------- #
-
-async def expense_clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Clearing expense log...\n"
-    success = expense_reset()
-    if success:
-        message += "done"
-    else:
-        message += "failed"
-    await update.message.reply_text(message)
-    return EXPMENU
-
-# ---------------------------------------------------------------------------------------------------- #
-
-def expense_update(expense_date: str, expense_type: str, expense_amounts: str):
-    try:
-        log_path = check_file(file=expense_log, folder_path=data_path)
-        # Check if provided input has multiple amounts
-        if "+" in expense_amounts:
-            expenses = expense_amounts.split("+")
-            total_amount = 0
-            for i in expenses:
-                total_amount += float(i)
-        else:
-            total_amount = float(expense_amounts)
-
-        total_amount = str(round(total_amount, 2))
-
-        with open(log_path, "a") as log:
-            log.write(f"{expense_date},{expense_type},{total_amount}\n")
-            print(f"\n>> expense_node.py > expense_update \n> Added expense: {expense_date},{expense_type},{total_amount}")
-        return True
-    except Exception as e:
-        print(f"\n>> expense_node.py > expense_update \n> Error: {e}")
-        return False
 
 def expense_get(expense_type: str, yearmonth: str):
     try:
         expense_sum = float()
+
         log_path = check_file(file=expense_log, folder_path=data_path)
         with open(log_path, "r") as log:
             expenses = log.readlines()
@@ -121,12 +109,22 @@ def expense_get(expense_type: str, yearmonth: str):
                 e_date, e_type, e_amount = e[0], e[1], e[2]
                 if e_date[0:6] == yearmonth and e_type == expense_type:
                     expense_sum += float(e_amount)
+        
         get_result = f"Total Amount: ${round(expense_sum, 2)}"
         print("\n>> expense_node.py > expense_get \n> Retrieved expenses.")
         return get_result
     except Exception as e:
         print(f"\n>> expense_node.py > expense_get \n> Error: {e}")
         return False
+
+# ---------------------------------------------------------------------------------------------------- #
+
+async def expense_clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = "Clearing expense log...\n"
+    success = expense_reset()
+    message += "done" if success else "failed"
+    await update.message.reply_text(message)
+    return EXPMENU
 
 def expense_reset():
     try:
@@ -138,5 +136,3 @@ def expense_reset():
     except Exception as e:
         print(f"\n>> expense_node.py > expense_reset \n> Error: {e}")
         return False
-
-# ---------------------------------------------------------------------------------------------------- #

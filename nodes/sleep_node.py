@@ -1,6 +1,6 @@
-from utility.variables import *
+from utility.helper import *
 
-## States
+# States
 SLEEPMENU, SLEEPADD = range(2)
 
 # ---------------------------------------------------------------------------------------------------- #
@@ -49,10 +49,7 @@ async def sleep_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     new_times = update.message.text
     message = f"Updating sleep log from {next_date}...\n"
     success = sleep_manager("add", None, [next_date, new_times])
-    if success:
-        message += "done"
-    else:
-        message += "failed"
+    message += "done" if success else "failed"
     await update.message.reply_text(message)
     return SLEEPMENU
 
@@ -134,5 +131,3 @@ def sleep_manager(command: str, subcommand: str, input: str):
     except Exception as e:
         print(f"\n>> sleep_node.py > sleep_manager \n> Error: {e}")
         return False
-
-# ---------------------------------------------------------------------------------------------------- #

@@ -1,4 +1,4 @@
-from utility.variables import *
+from utility.helper import *
 from nodes.standard import *
 from nodes.sleep_node import *
 from nodes.news_node import *
@@ -22,11 +22,12 @@ def main(api_token):
     news_node_handler = ConversationHandler(
         entry_points = [CommandHandler("news", news_node)],
         states = {NEWSMENU: [MessageHandler(filters.Regex("^/news_cna$"), news_cna),
-                             MessageHandler(filters.Regex("^/news_gn$"), news_gn)
-                            #  MessageHandler(filters.Regex("^/news_bb$"), news_bb)
+                             MessageHandler(filters.Regex("^/news_gn$"), news_gn),
+                             MessageHandler(filters.Regex("^/news_nhk$"), news_nhk)
                              ],
                   CNA: [MessageHandler(filters.Regex("^(Asia|Business|East Asia|World)$"), show_cna)],
-                  GRND: [MessageHandler(filters.Regex("^(Stock Markets|Tech|Asia|North America)$"), show_gn)]
+                  GRND: [MessageHandler(filters.Regex("^(Stock Markets|Tech|Asia|North America)$"), show_gn)],
+                  NHK: [MessageHandler(filters.Regex("^(経済|社会|政治|国際)$"), show_nhk)]
                   },
         fallbacks = [CommandHandler("cancel", cancel)] )
     application.add_handler(news_node_handler)
@@ -38,8 +39,8 @@ def main(api_token):
                             MessageHandler(filters.Regex("^/expense_view$"), expense_view_type),
                             MessageHandler(filters.Regex("^/expense_clear$"), expense_clear)
                             ],
-                  EXPADD_TYP: [MessageHandler(filters.Regex("^(Food|Stuff)$"), expense_add_amount)],
-                  EXPADD_AMT: [MessageHandler(filters.Regex("^\\d+(\\.\\d{1,2})?(\\+\\d+(\\.\\d{1,2})?)*$"), expense_add_update)],
+                  EXPADD_TYP:  [MessageHandler(filters.Regex("^(Food|Stuff)$"), expense_add_amount)],
+                  EXPADD_AMT:  [MessageHandler(filters.Regex("^\\d+(\\.\\d{1,2})?(\\+\\d+(\\.\\d{1,2})?)*$"), expense_add_update)],
                   EXPGET_TYP:  [MessageHandler(filters.Regex("^(Food|Stuff)$"), expense_view_date)],
                   EXPGET_DATE: [MessageHandler(filters.Regex("^[0-9]{6}$"), expense_view_get)]
                   },
@@ -52,20 +53,15 @@ def main(api_token):
                               CommandHandler("cancel", cancel),
                               MessageHandler(filters.TEXT & (~filters.COMMAND), echo)])
 
-    print("\n>>> hnk_pinboard bot ONLINE.")
+    print("\n>> main.py > hnk_pinboard bot ONLINE.")
     application.run_polling()
 
 # -------------------------------------------------- #
-# Run the bot                                        #
+# Run telegram bot                                   #
 # -------------------------------------------------- #
-token_file = "api_token.txt"
-token_path = data_path + "/" + token_file
 
-if os.path.exists(token_path):
-    with open(token_path) as f:
-        api_token = f.read()
-    if __name__ == '__main__':
-        main(api_token)
-        print("\n>>> hnk_pinboard bot OFFLINE.")
+if __name__ == '__main__':
+    main(telegram_token)
+    print("\n>> main.py > hnk_pinboard bot OFFLINE.")
 else:
-    print(f"\n>> main.py > Could not find required file '{token_file}'")
+    print("\n>> main.py > Failed to start hnk_pinboard bot.")

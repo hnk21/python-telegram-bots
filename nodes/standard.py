@@ -1,4 +1,4 @@
-from utility.variables import *
+from utility.helper import *
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
@@ -13,6 +13,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         message = "\n".join([f"Welcome, {name}",
                             "Enter a command via the menu or /help."])
+    
     await update.message.reply_text(message)
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,5 +55,3 @@ def get_time():
 
     message = f"「{curr_datetime}・Day #{days_elapsed+1}」\n今年の終わり 後{days_left}日\n今日の終わり 後{time_left}"
     return message
-
-# ---------------------------------------------------------------------------------------------------- #
