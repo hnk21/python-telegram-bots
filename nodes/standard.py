@@ -17,7 +17,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message)
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "/news | /sleep | /expense"
+    message = "/news | /notion | /sleep | /expense"
     await update.message.reply_text(message)
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):

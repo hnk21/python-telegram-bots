@@ -2,11 +2,11 @@
 # imports                                            #
 # -------------------------------------------------- #
 
-import aiohttp, asyncio, os, json
-from dotenv import load_dotenv, dotenv_values
+import aiohttp, asyncio, os, json, requests
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from dotenv import load_dotenv, dotenv_values
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import Application, CommandHandler, ConversationHandler, ContextTypes, MessageHandler, filters
 
@@ -51,36 +51,53 @@ def check_file_update(file: str, folder_path: str, hours: int):
     return to_update, file_path
 
 # -------------------------------------------------- #
-# variables                                          #
+# data folder path                                   #
 # -------------------------------------------------- #
 
-## Set path of data folder
 data_folder = "python-telegram-bots/data"
 data_path = find_folder(data_folder)
 html_folder_path = data_path + "/_html"
 json_folder_path = data_path + "/_json"
 
-## Get variables from .env
-load_dotenv()
-telegram_token = os.getenv("TELEGRAM_API_TOKEN")
-# notion_token = os.getenv("NOTION_API_TOKEN_1_EVENTS")
-master = os.getenv("MASTER")
+# -------------------------------------------------- #
+# .env variables                                     #
+# -------------------------------------------------- #
 
-## For nodes > standard.py > get_time()
-weekdays_en_jp = {"Monday"   : "月", 
-                  "Tuesday"  : "火",
-                  "Wednesday": "水",
-                  "Thursday" : "木",
-                  "Friday"   : "金",
-                  "Saturday" : "土",
-                  "Sunday"   : "日"
+load_dotenv()
+master = os.getenv("MASTER")
+telegram_token = os.getenv("TELEGRAM_API_TOKEN")
+
+notion_version = "2026-03-11"
+notion_token_1 = os.getenv("NOTION_API_TOKEN_AKR")
+notion_datasource_id_jpvocab = os.getenv("NOTION_AKR_DATASOURCE_ID_NIHONGONOGOI")
+# notion_datasource_id_ = os.getenv("NOTION_AKR_DATASOURCE_ID_")
+
+notion_headers = {'Authorization': f"Bearer {notion_token_1}",
+                  'Content-Type': 'application/json',
+                  'Notion-Version': notion_version}
+
+jpvocab_json = "notion_jpvocab.json"
+
+# -------------------------------------------------- #
+# standard.py > get_time()                           #
+# -------------------------------------------------- #
+
+weekdays_en_jp = {"Monday"   : "月", "Tuesday"  : "火", "Wednesday": "水",
+                  "Thursday" : "木", "Friday"   : "金",
+                  "Saturday" : "土", "Sunday"   : "日"
                   }
 
-## data folder > .txt log files
+# -------------------------------------------------- #
+# data folder > .txt log files                       #
+# -------------------------------------------------- #
+
 sleep_log   = "sleep_log.txt"
 expense_log = "expense_log.txt"
 
-## For nodes > news_node.py 
+# -------------------------------------------------- #
+# news_node.py                                       #
+# -------------------------------------------------- #
+
 hours = 6 # Threshold for last modified duration of file
 
 # CNA

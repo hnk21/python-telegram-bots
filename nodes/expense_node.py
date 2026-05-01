@@ -9,17 +9,15 @@ reply_keyboard = [["Food", "Stuff"]]
 async def expense_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     print(f"\n>> expense_node.py > expense_node > User: {user["username"]}")
-    name = user["first_name"]
-    username = user["username"]
+    name, username = user["first_name"], user["username"]
     if username == master:
         message = "\n".join(["Welcome to the expense node",
                             "/expense_add - Add an expense",
                             "/expense_view - View expenses",
-                            "/cancel - Exit node",
-                            "Use command 'expense_clear' to clear log"
+                            "/cancel - Exit node"
                             ])
     else:
-        message = f"Hey {name} you can't access this node!"
+        message = f"Hey '{name}' you can't access this node!"
     await update.message.reply_text(message)
     return EXPMENU
 
@@ -27,9 +25,7 @@ async def expense_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def expense_add_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = "Adding expenses - Select type of expense"
-    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, 
-                                                                              resize_keyboard=True, 
-                                                                              one_time_keyboard=False, 
+    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, one_time_keyboard=False, 
                                                                               input_field_placeholder="Select type of expense"))
     return EXPADD_TYP
 
@@ -45,7 +41,7 @@ async def expense_add_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
     exp_amounts = update.message.text
     exp_date = date.today().strftime("%Y%m%d")
     success = expense_update(expense_date=exp_date, expense_type=exp_type, expense_amounts=exp_amounts)
-    message += "done" if success else "failed"
+    message += "ok" if success else "failed"
     await update.message.reply_text(message)
     return EXPMENU
 
@@ -63,9 +59,13 @@ def expense_update(expense_date: str, expense_type: str, expense_amounts: str):
             total_amount = float(expense_amounts)
         total_amount = str(round(total_amount, 2))
 
+        # Update .txt
         with open(expense_log_path, "a") as log:
             log.write(f"{expense_date},{expense_type},{total_amount}\n")
             print(f"\n>> expense_node.py > expense_update \n> Added expense: {expense_date},{expense_type},{total_amount}")
+
+        ### TO CONVERT EXPENSE LOGGING FROM .TXT TO .DB
+        # Update .db
         
         return True
     except Exception as e:
@@ -76,16 +76,13 @@ def expense_update(expense_date: str, expense_type: str, expense_amounts: str):
 
 async def expense_view_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = "Viewing expenses - Select type of expense"
-    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, 
-                                                                              resize_keyboard=True, 
-                                                                              one_time_keyboard=False, 
-                                                                              input_field_placeholder="Select type of expense"))
+    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, one_time_keyboard=False, input_field_placeholder="Select type of expense"))
     return EXPGET_TYP
 
 async def expense_view_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Enter the year and month (yyyymm)"
     global exp_type
     exp_type = update.message.text
+    message = "Enter the year and month (yyyymm)"
     await update.message.reply_text(message, reply_markup=ReplyKeyboardRemove())
     return EXPGET_DATE
 
@@ -96,6 +93,15 @@ async def expense_view_get(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message += result if result else "failed"
     await update.message.reply_text(message)
     return EXPMENU
+
+async def expense_clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = "Clearing expense log...\n"
+    success = expense_reset()
+    message += "done" if success else "failed"
+    await update.message.reply_text(message)
+    return EXPMENU
+
+# ---------------------------------------------------------------------------------------------------- #
 
 def expense_get(expense_type: str, yearmonth: str):
     try:
@@ -116,15 +122,6 @@ def expense_get(expense_type: str, yearmonth: str):
     except Exception as e:
         print(f"\n>> expense_node.py > expense_get \n> Error: {e}")
         return False
-
-# ---------------------------------------------------------------------------------------------------- #
-
-async def expense_clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Clearing expense log...\n"
-    success = expense_reset()
-    message += "done" if success else "failed"
-    await update.message.reply_text(message)
-    return EXPMENU
 
 def expense_reset():
     try:

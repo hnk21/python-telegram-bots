@@ -1,24 +1,45 @@
 # python-telegram-bots
-Last updated: 2026-04-12
+Last updated: 2026-04-25
 
 Personal project, telegram bot as an assistant/pinboard.
 
-Using Python, python-telegram-bot, https://docs.python-telegram-bot.org/en/v21.8/index.html.
+Using python-telegram-bot, as the front end interaction
 
-----------
+https://docs.python-telegram-bot.org/en/v21.8/index.html
+
+--------------------------------------------------
 
 # Idea Backlog
  
-- Convert data logging to sqlite3
-- Notion Node
-    - Pull events from akr workspace > 1_EVENTS page
-    - Not sure what to do with akr workspace > 2_BUNKA, hnk workspace yet 
-- AI Summarizer Node
-    - Input url to LLM via LLM API, have it return a summmary
-- AI Chatbot that speaks like Pochita
-    - For fun
+- **Notion node**
+    - akr workspace > 2_BUNKA > Japanese vocab training
+        - Return overall result of practice (which words ok, which words redo)
+    - akr workspace > 1_EVENTS
+        - Fetch today's events
+        - Fetch this week's events
+    - ???
+- **AI node**
+    - Using Google Gemini
+    - Prepare different response rules for the LLM, each catered to specific answer requirements
+        - News article summariser
+        - General query
+        - Answer as a certain character (e.g. Chainsawman Pochita)
+            - Joke feature, not sure where to go with this
+- Steam node
+    - Get hours played for recently played games (past 2 weeks)
+    - Get info if games on wishlist are on sale
+    - Days till next seasonal sale > steamdb
+- Convert data logging from .txt to .db sqlite3
+    - Expense node
+    - Sleep node
+- Expense node
+    - Analysis? Amount spent over each month, return .png of chart
+- Sleep node
+    - Analysis?
+- Spotify node
+    - ???
 
---------------------------------------------------------------------------------
+--------------------------------------------------
 
 # Commands
 
@@ -30,12 +51,12 @@ Starts the bot and display opening message.
 ### /help
 Displays available commands that starts a node/feature.
 
-----------
+--------------------------------------------------
 
-## Nodes
+## Public Nodes
 
 ### /news
-News scraper.
+Pulls news article titles and links from selected sites.
 - Channel News Asia
     - https://www.channelnewsasia.com/latest-news, for the following categories: 
     - Business, World, Asia, East Asia 
@@ -48,7 +69,16 @@ News scraper.
     - https://news.web.nhk/newsweb/genre/, for the following categories:
     - business, society, politics, international
 
-----------
+--------------------------------------------------
+
+## Personal Nodes
+
+### /notion
+Integration with personal Notion workspace.
+
+### /steam
+
+### /ai
 
 ### /sleep
 For logging sleep timings.
@@ -56,11 +86,9 @@ For logging sleep timings.
 - /sleep_add
     - Add a sleep timing to a sleep log file.
 - /sleep_view
-    - Shows the entire sleep log.
+    - Returns the entire sleep log.
 - /sleep_clear
     - Clears the sleep log file. Manually typed command.
-
-----------
 
 ### /expense
 For logging simple expenses.
@@ -72,4 +100,4 @@ For logging simple expenses.
 - /expense_clear
     - Clears the expense log file, Manually typed command.
 
---------------------------------------------------------------------------------
+--------------------------------------------------

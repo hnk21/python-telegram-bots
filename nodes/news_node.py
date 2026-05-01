@@ -47,9 +47,7 @@ async def news_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             reply_keyboard.sort(key=lambda val : SORT_ORDER[val])
             reply_keyboard.append("/cancel")
             reply_keyboard = [reply_keyboard]
-            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, 
-                                                                                        one_time_keyboard=False, 
-                                                                                        input_field_placeholder="Select category."))
+            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return CNA
         else:
             print(f"\n>> news_node.py > news_cna \n> Error occurred, news_dict is empty.")
@@ -95,9 +93,7 @@ async def news_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             reply_keyboard = list(news_dict.keys())
             reply_keyboard.append("/cancel")
             reply_keyboard = [reply_keyboard]
-            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, 
-                                                                                        one_time_keyboard=False, 
-                                                                                        input_field_placeholder="Select category."))
+            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return GRND
         else:
             print(f"\n>> news_node.py > news_gn \n> Error occurred, news_dict is empty.")
@@ -141,9 +137,7 @@ async def news_nhk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             reply_keyboard = list(news_dict.keys())
             reply_keyboard.append("/cancel")
             reply_keyboard = [reply_keyboard]
-            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, 
-                                                                                        one_time_keyboard=False, 
-                                                                                        input_field_placeholder="Select category."))
+            await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return NHK
         else:
             print(f"\n>> news_node.py > news_cna \n> Error occurred, news_dict is empty.")
