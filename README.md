@@ -11,24 +11,19 @@ https://docs.python-telegram-bot.org/en/v21.8/index.html
 
 # Idea Backlog
  
+- **AI node**
+    - Google Gemini
+    - Prepare different rules to control the response allowed for the LLM, each catered to specific answer requirements
+        - General query
+        - News article summariser
+        - Answer as a certain character (e.g. Chainsawman Pochita)
+            - Joke feature, not sure where to go with this
 - **Notion node**
     - akr workspace > 2_BUNKA > Japanese vocab training
         - Return overall result of practice (which words ok, which words redo)
     - akr workspace > 1_EVENTS
         - Fetch today's events
         - Fetch this week's events
-    - ???
-- **AI node**
-    - Using Google Gemini
-    - Prepare different response rules for the LLM, each catered to specific answer requirements
-        - News article summariser
-        - General query
-        - Answer as a certain character (e.g. Chainsawman Pochita)
-            - Joke feature, not sure where to go with this
-- Steam node
-    - Get hours played for recently played games (past 2 weeks)
-    - Get info if games on wishlist are on sale
-    - Days till next seasonal sale > steamdb
 - Convert data logging from .txt to .db sqlite3
     - Expense node
     - Sleep node
@@ -36,8 +31,6 @@ https://docs.python-telegram-bot.org/en/v21.8/index.html
     - Analysis? Amount spent over each month, return .png of chart
 - Sleep node
     - Analysis?
-- Spotify node
-    - ???
 
 --------------------------------------------------
 

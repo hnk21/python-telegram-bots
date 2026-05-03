@@ -1,23 +1,35 @@
 from utility.helper import *
 
+# -------------------------------------------------- #
+# Main start function                                #
+# -------------------------------------------------- #
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     print(f"\n>> standard.py > start > User: {user["username"]}")
-    name = user["first_name"]
-    username = user["username"]
+    name, username = user["first_name"], user["username"]
     if username == master:
-        message = "\n".join(["おかえり、ポチタ。",
+        message = "\n".join([f"おかえり、{name}\n",
                             get_time(),
-                            "Enter a command via the menu or /help."
-                            ])
+                            "/commands"])
     else:
         message = "\n".join([f"Welcome, {name}",
-                            "Enter a command via the menu or /help."])
-    
+                            "/command to view all available commands"])
     await update.message.reply_text(message)
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "/news | /notion | /sleep | /expense"
+async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+    username = user["username"]
+    if username == master:
+        message = "| /news | /steam | /ai |\n"
+        message += "| /expense | /sleep | /notion |"
+    else:
+        message = "| /news |"
+    await update.message.reply_text(message)
+
+async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = "A solo project by 'https://github.com/hnk21'\n"
+    message += "Creating a personal pinboard / info assistant using telegram bots as a front-end"
     await update.message.reply_text(message)
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -28,14 +40,16 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message)
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Exited current node.", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text("Exited current node", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Function for fetching time                         #
+# -------------------------------------------------- #
 
 def get_time():
     dt_now = datetime.now()
-    curr_datetime = dt_now.strftime("%Y-%m-%d（%A）%H:%M")
+    curr_date = dt_now.strftime("%Y-%m-%d（%A）")
     dt_end_today = dt_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     sec_left = (dt_end_today - dt_now).total_seconds()
     
@@ -46,12 +60,14 @@ def get_time():
     # Convert weekdays from English to Japanese
     weekday = dt_now.strftime("%A")
     youbi = weekdays_en_jp[weekday]
-    curr_datetime = curr_datetime.replace(weekday, youbi)
+    curr_date = curr_date.replace(weekday, youbi)
 
     # Get day number of current year
     dt_start = datetime(dt_now.year, 1, 1)
     days_elapsed = (dt_now - dt_start).days
     days_left = 365 - days_elapsed
 
-    message = f"「{curr_datetime}・Day #{days_elapsed+1}」\n今年の終わり 後{days_left}日\n今日の終わり 後{time_left}"
+    message = f"「{curr_date}・Day #{days_elapsed+1}」\n"
+    message += f"「今年の終わり 後{days_left}日」\n"
+    message += f"「今日の終わり 後{time_left}」\n"
     return message

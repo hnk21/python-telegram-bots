@@ -1,0 +1,205 @@
+from utility.helper import *
+
+# States
+STEAMMENU = range(1)
+
+# -------------------------------------------------- #
+# Main node menu                                     #
+# -------------------------------------------------- #
+
+async def steam_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+    print(f"\n>> steam.py > steam_node > User: {user["username"]}")
+    name, username = user["first_name"], user["username"]
+    if username == master:
+        message = "\n".join(["Welcome to the Steam node",
+                            "/activity - Recent playtime",
+                            "/wishlist - Wishlist info",
+                            "/sale - Next seasonal Steam sale info",
+                            "/cancel - Exit node"
+                            ])
+    else:
+        message = f"Hey '{name}' you can't access this node!"
+    await update.message.reply_text(message)
+    return STEAMMENU
+
+# -------------------------------------------------- #
+# State functions                                    #
+# -------------------------------------------------- #
+
+async def steam_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = "Fetching recent play activity..."
+    await update.message.reply_text(message)
+    
+    success = get_recently_played()
+    if success:
+        with open(json_folder_path + "/" + steam_json_1, "r") as json_file:
+            data = json.load(json_file)
+        
+        data = data["response"]
+        number_played = data["total_count"]
+        message = f"For the past 2 weeks, you played {number_played} games:\n\n"
+        
+        recent_playtime_min = 0
+        games_played = data["games"]
+        
+        for game in games_played:
+            recent_playtime_min += game["playtime_2weeks"]
+            message += f"> '{game["name"]}' for {round(game["playtime_2weeks"] / 60, 1)} hours\n"
+        recent_playtime_hour = round(recent_playtime_min / 60, 1)
+        
+        message += f"\nFor a total of {recent_playtime_hour} hours"
+    else:
+        message = "Failed, returned to the main menu"
+    
+    await update.message.reply_text(message)
+    return STEAMMENU
+
+async def steam_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = "Fetching wishlist info..."
+    await update.message.reply_text(message)
+
+    # Check if .json file needs updating
+    hours = 24
+    to_update, json_path = check_file_update(file = steam_json_2, folder_path = json_folder_path, hours = 24)
+
+    if to_update:
+        print("> Running 'get_wishlist' to get .json file...")
+        success = get_wishlist()
+    else:
+        print(f"> '{json_path}' was last modified < {hours} hours ago, skipping fetching step")
+        success = True
+    
+    if success:
+        with open(json_folder_path + "/" + steam_json_2, "r") as json_file:
+            data = json.load(json_file)
+        
+        message = f"Fetched {len(data)} games from your wishlist\n\n"
+
+        i = 1
+        for game in data.keys():
+            name, price, discount = data[game]["name"], data[game]["price"], data[game]["discount"]
+
+            if name != '-' and price == '-':
+                message += f"{i}. '{name}', not released yet\n\n"
+            elif name != '-' and price != '-':
+                price = price.replace("S", "")
+
+                if discount > 0:
+                    message += f"{i}. '{name}', {price}, {discount}% off\n\n"
+                else:
+                    message += f"{i}. '{name}', {price}\n\n"
+            else:
+                message += f"{i}. Something went wrong when fetching data on game appid '{game}'\n\n"
+            
+            i += 1       
+    else:
+        message = "Failed, returned to the main menu"
+
+    await update.message.reply_text(message)
+    return STEAMMENU
+
+async def steam_sale(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = "https://steamdb.info/sales/history/"
+    message = f"Visit '{url}' for news on the next seasonal Steam sale"
+    await update.message.reply_text(message)
+    return STEAMMENU
+
+# -------------------------------------------------- #
+# API functions                                      #
+# -------------------------------------------------- #
+
+def get_recently_played():
+    print("\n>> steam.py > get_recently_played")
+    print("> GET - recently played games", end = " ")
+    url = f"https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key={steam_token}&steamid={steam_id}&format=json"
+    response = requests.get(url)
+    status = response.status_code
+    if status == 200:
+        print(f"> {status} ok")
+        data = response.json()
+        with open(json_folder_path + "/" + steam_json_1, 'w') as file:
+            json.dump(data, file, indent=4)
+        return True
+    else:
+        print(f"> {status} failed")
+        return False
+
+# 3 GET requests
+    # 1. Get wishlist from steam user
+    # 2. Get current price of all games in wishlist
+    # 3. Get game name
+
+def get_wishlist():
+    print("\n>> steam.py > get_wishlist")
+
+    # 1. Get wishlist
+    print(f"> GET steam user wishlist", end = " ")
+    wishlist_url = f"https://api.steampowered.com/IWishlistService/GetWishlist/v1/?key={steam_token}&steamid={steam_id}&format=json"
+    response = requests.get(wishlist_url)
+    status = response.status_code
+    
+    if status == 200:
+        print(f"> {status} ok")
+        
+        wishlist_data = response.json()["response"]["items"]
+        print(f"> Retrieved {len(wishlist_data)} games from wishlist")
+        
+        if len(wishlist_data) > 0:
+            result = defaultdict()
+    
+            appids = []
+            for game in wishlist_data:
+                appids.append(str(game["appid"]))
+
+            # 2. Get current price of all games in wishlist
+            print(f"> GET steam game prices", end = " ")
+            string_appids = ",".join(appids)
+            game_prices_url = f"http://store.steampowered.com/api/appdetails?appids={string_appids}&filters=price_overview"
+            response = requests.get(game_prices_url)
+            status = response.status_code
+
+            if status == 200:
+                print(f"> {status} ok")
+
+                game_price_data = response.json()
+
+                for appid in appids:
+                    # 3. Get game name
+                    print(f"> GET steam details > {appid}", end = " ")
+                    game_url = f"http://store.steampowered.com/api/appdetails?appids={appid}"
+                    response = requests.get(game_url)
+                    status = response.status_code
+
+                    if status == 200:
+                        print(f"> {status} ok")
+
+                        game_name = response.json()[appid]["data"]["name"]
+                        game_data = game_price_data[appid]["data"]
+
+                        if game_data:
+                            price_data = game_data["price_overview"]
+                            currency, discount_percent, price = price_data["currency"], price_data["discount_percent"], price_data["final_formatted"]
+                            result[appid] = {"name": game_name, "price": price, "discount": discount_percent, "currency": currency}
+                        else:
+                            result[appid] = {"name": game_name, "price": '-', "discount": '-', "currency": '-'}
+                    else:
+                        result[appid] = {"name": '-', "price": '-', "discount": '-', "currency": '-'}
+                        print(f"> {status} failed")
+            
+                with open(json_folder_path + "/" + steam_json_2, 'w') as file:
+                    json.dump(result, file, indent=4)
+                    print(f"> Wrote wishlist data to {steam_json_2}")
+                
+                return True
+
+            else:
+                print(f"> {status} failed")
+                return False
+        else:
+            print("> Wishlist is empty")
+            return False
+
+    else:
+        print(f"> {status} failed")
+        return False

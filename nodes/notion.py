@@ -4,7 +4,9 @@ from utility.helper import *
 NOTIONMENU, JP_VOCAB_GET, JP_VOCAB_ANS, JP_VOCAB_UPD = range(4)
 reply_keyboard = [["☓", "◯"]]
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Main node menu                                     #
+# -------------------------------------------------- #
 
 async def notion_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
@@ -12,9 +14,9 @@ async def notion_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name, username = user["first_name"], user["username"]
     if username == master:
         message = "\n".join(["Welcome to the Notion node",
-                            "/notion_jp_vocab - 日本語の語彙を練習",
-                            # "/notion_ - Do something on Notion",
-                            # "/notion_ - Do something on Notion",
+                            "/jpvocab - 日本語の語彙を練習",
+                            # "/command - Do something on Notion",
+                            # "/command - Do something on Notion",
                             "/cancel - Exit node"
                             ])
     else:
@@ -22,7 +24,9 @@ async def notion_node(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message)
     return NOTIONMENU
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# State functions                                    #
+# -------------------------------------------------- #
 
 async def notion_jpvocab(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = "語彙の練習：１から３０までの数字を入力してください"
@@ -47,12 +51,12 @@ async def notion_jpvocab_get(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "in_trash": False,
         "result_type": "page"
     }
-    success = notion_post_querydatasource(data_source_id = notion_datasource_id_jpvocab, payload = payload)
+    success = post_querydatasource(data_source_id = notion_datasource_id_jpvocab, payload = payload)
     if success:
-        message += "ok\n"
+        message += "ok"
         await update.message.reply_text(message)
         global curr; curr = 0
-        with open(json_folder_path + "/" + jpvocab_json, 'r') as file:
+        with open(json_folder_path + "/" + notion_jpvocab_json, 'r') as file:
             global vocab_dict
             vocab_dict = json.load(file)
         global pages_to_update; pages_to_update = defaultdict()
@@ -104,7 +108,7 @@ async def notion_jpvocab_update(update: Update, context: ContextTypes.DEFAULT_TY
                 }
             }
         }
-        success = notion_patch_updatepage(page_id = page_id, payload = payload)
+        success = patch_updatepage(page_id = page_id, payload = payload)
         successful_updates += 1 if success else 0
     if successful_updates == page_size:
         message = "Update successful"
@@ -118,29 +122,31 @@ async def notion_jpvocab_update(update: Update, context: ContextTypes.DEFAULT_TY
     await update.message.reply_text(message)
     return NOTIONMENU
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# API functions                                      #
+# -------------------------------------------------- #
 
-def notion_post_querydatasource(data_source_id, payload):
+def post_querydatasource(data_source_id, payload):
     url = f"https://api.notion.com/v1/data_sources/{data_source_id}/query"
     pages = []    
     response = requests.post(url, json = payload, headers = notion_headers)
     if response:
         data = response.json()
         pages.extend(data.get("results", []))
-        with open(json_folder_path + "/" + jpvocab_json, 'w') as file:
+        with open(json_folder_path + "/" + notion_jpvocab_json, 'w') as file:
             json.dump(pages, file, indent=4)
-        print("\n>> notion.py > notion_post_querydatasource > POST - Query Data Source > ok")
+        print("\n>> notion.py > post_querydatasource > POST - Query Data Source > ok")
         return True
     else:
-        print("\n>> notion.py > notion_post_querydatasource > POST - Query Data Source > failed")
+        print("\n>> notion.py > post_querydatasource > POST - Query Data Source > failed")
         return False
 
-def notion_patch_updatepage(page_id, payload):
+def patch_updatepage(page_id, payload):
     url = f"https://api.notion.com/v1/pages/{page_id}"
     response = requests.patch(url, json = payload, headers = notion_headers)
     if response:
-        print("\n>> notion.py > notion_patch_updatepage > PATCH - Update Page > ok")
+        print("\n>> notion.py > patch_updatepage > PATCH - Update Page > ok")
         return True
     else:
-        print("\n>> notion.py > notion_patch_updatepage > PATCH - Update Page > failed")
+        print("\n>> notion.py > patch_updatepage > PATCH - Update Page > failed")
         return False

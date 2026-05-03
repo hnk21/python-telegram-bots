@@ -3,7 +3,9 @@ from utility.helper import *
 # States
 SLEEPMENU, SLEEPADD = range(2)
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Main node menu                                     #
+# -------------------------------------------------- #
 
 async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
@@ -11,8 +13,8 @@ async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     name, username = user["first_name"], user["username"]
     if username == master:
         message = "\n".join(["Welcome to the sleep node",
-                            "/sleep_add - Add sleep timings",
-                            "/sleep_view - View sleep log",
+                            "/add - Add sleep timings",
+                            "/view - View sleep log",
                             "/cancel - Exit node"
                             ])
     else:
@@ -20,7 +22,9 @@ async def sleep_node(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(message)
     return SLEEPMENU
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# State functions                                    #
+# -------------------------------------------------- #
 
 async def sleep_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     result = sleep_manager(command="get", subcommand="last", input=None)
@@ -73,7 +77,9 @@ async def sleep_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await update.message.reply_text(message)
     return SLEEPMENU
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Function for handling sleep data                   #
+# -------------------------------------------------- #
 
 def sleep_manager(command: str, subcommand: str, input: str):
     try:

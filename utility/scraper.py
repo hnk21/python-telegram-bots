@@ -1,44 +1,47 @@
 from utility.helper import *
 
-def filter_attr_href(tag):
-    return tag.has_attr('href')
+# -------------------------------------------------- #
+# Main scraper function                              #
+# -------------------------------------------------- #
 
 async def scrape_html(url: str, html_path: str) -> bool:
+    print(f"\n>> scraper.py > scrape_html\n> Connecting to '{url}'...")
     try:
         async with aiohttp.ClientSession() as session:
-            log = f"\n>> scraper.py > scrape_html \n> Connecting to '{url}'... "
             async with session.get(url) as response:
                 if response.ok:
-                    print(log + f"({response.status}) successful response.")
+                    print(f"> ({response.status}) connection success")
                     html = await response.text()
-
                     with open(html_path, "w", encoding="utf-8") as f:
                         f.write(html)
-                    print(f"\n>> scraper.py > scrape_html \n> Updated '{html_path}'")
+                    print(f"> Updated '{html_path}'")
                     return True
                 else:
-                    print(log + f"({response.status}) connection error.")
+                    print(f"({response.status}) connection error")
                     return False
     except Exception as e:
-        print(f"\n>> scraper.py > scrape_html \n> Error: {e}")
+        print(f"> Error: {e}")
         return False
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# CNA HTML scraper                                   #
+# -------------------------------------------------- #
 
 async def parse_html_cna():
-    file_path = html_folder_path + "/" + cna_html
+    print(f"\n>> scraper.py > parse_html_cna")
+    
+    file_path = check_file(file = cna_html, folder_path = html_folder_path)
     success = asyncio.get_event_loop().create_task(scrape_html(url=cna_url, html_path=file_path))
     await success
 
-    # If scrape_html is successful, parse html
     if success:    
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, 'r', encoding = 'utf-8') as file:
             html_content = file.read()
         
         soup = BeautifulSoup(html_content, 'html.parser')
 
-        # Grab tags with attribute 'data-category' that are in defined categories
-        # Then get attributes 'data-category', 'data-heading', 'data-link_absolute'
+        ## Grab tags with attribute 'data-category' that are in defined categories
+        ## Then get attributes 'data-category', 'data-heading', 'data-link_absolute'
         categories = ["Business", "World", "Asia", "East Asia"]
         tags = soup(attrs={"data-category": categories})
         news_dict = defaultdict(list)
@@ -48,39 +51,42 @@ async def parse_html_cna():
             title    = tag["data-heading"]
             news_dict[category].append([title, link])
         
-        # Save news_dict into .json
+        ## Save news_dict into .json
         with open(json_folder_path + "/" + cna_json, 'w') as file:
             json.dump(news_dict, file, indent=4)
         
-        print(f"\n>> scraper.py > parse_html_cna \n> Updated {cna_json} in {data_path}")
+        print(f"> Updated {cna_json} in {data_path}")
     else:
-        print(f"\n>> scraper.py > parse_html_cna \n> Could not scrape_html from '{cna_url}' ...")
+        print(f"> Could not scrape_html from '{cna_url}'")
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# Ground News HTML Scraper                           #
+# -------------------------------------------------- #
 
 async def parse_html_gn():
+    print(f"\n>> scraper.py > parse_html_gn")
+
     news_dict = defaultdict(list)
 
     for topic in gn_topics:
         gn_url_topic = gn_url + topic
         gn_html = "news_gn_" + topic + ".html"
-        file_path = html_folder_path + "/" + gn_html
+        file_path = check_file(file = gn_html, folder_path = html_folder_path)
 
         success = asyncio.get_event_loop().create_task(scrape_html(url=gn_url_topic, html_path=file_path))
         await success
 
-        # If scrape_html is successful, parse html
         if success:
             with open(file_path, 'r', encoding='utf-8') as file:
                 html_content = file.read()
             soup = BeautifulSoup(html_content, 'html.parser')
 
-            # (1) Grab attributes 'href', which are article links when appended to https://ground.news/ 
-            # (2) Make the article title from these links
-            # Remove /article/
-            # Replace "-" characters with " "
-            # Ignore string past "_" if any
-            # Capitalise first character of each word
+            ## (1) Grab attributes 'href', which are article links when appended to https://ground.news/ 
+            ## (2) Make the article title from these links
+            ## Remove /article/
+            ## Replace "-" characters with " "
+            ## Ignore string past "_" if any
+            ## Capitalise first character of each word
             
             tags = soup(filter_attr_href)
             articles = set()
@@ -92,28 +98,31 @@ async def parse_html_gn():
                     title = " ".join( [word.capitalize() for word in link[9:].split("-")] )
                     news_dict[gn_topics[topic]].append([title, gn_base + link])
         else:
-            print(f"\n>> scraper.py > parse_html_gn \n> Could not scrape_html from '{gn_url_topic}' ...")
+            print(f"> Could not scrape_html from '{gn_url_topic}' ...")
         
-    # Save news_dict into .json
+    ## Save news_dict into .json
     with open(json_folder_path + "/" + gn_json, 'w') as file:
         json.dump(news_dict, file, indent=4)
     
-    print(f"\n>> scraper.py > parse_html_gn \n> Updated {gn_json} in {data_path}")
+    print(f"> Updated {gn_json} in {data_path}")
 
-# ---------------------------------------------------------------------------------------------------- #
+# -------------------------------------------------- #
+# NHK HTML Scraper                                   #
+# -------------------------------------------------- #
 
 async def parse_html_nhk():
+    print(f"\n>> scraper.py > parse_html_nhk")
+
     news_dict = defaultdict(list)
 
     for topic_en, topic_jp in nhk_topics.items():
         nhk_url_topic = nhk_url + topic_en
         nhk_html = "news_nhk_" + topic_en + ".html"
 
-        file_path = html_folder_path + "/" + nhk_html
+        file_path = check_file(file = nhk_html, folder_path = html_folder_path)
         success = asyncio.get_event_loop().create_task(scrape_html(url=nhk_url_topic, html_path=file_path))
         await success
 
-        # If scrape_html is successful, parse html
         if success:    
             with open(file_path, 'r', encoding='utf-8') as file:
                 html_content = file.read()
@@ -127,10 +136,18 @@ async def parse_html_nhk():
                 title = title_tag.get_text(strip=True) if title_tag else ""
                 news_dict[topic_jp].append([title, link])
 
-            # Save news_dict into .json
+            ## Save news_dict into .json
             with open(json_folder_path + "/" + nhk_json, 'w') as file:
                 json.dump(news_dict, file, indent=4)
             
-            print(f"\n>> scraper.py > parse_html_nhk \n> Updated {nhk_json} in {json_folder_path}")
+            print(f"> Updated {nhk_json} in {json_folder_path}")
         else:
-            print(f"\n>> scraper.py > parse_html_nhk \n> Could not scrape from '{nhk_url_topic}' ...")
+            print(f"> Could not scrape from '{nhk_url_topic}' ...")
+
+
+# -------------------------------------------------- #
+# Tag filter function                                #
+# -------------------------------------------------- #
+
+def filter_attr_href(tag):
+    return tag.has_attr('href')
