@@ -17,7 +17,6 @@ https://docs.python-telegram-bot.org/en/v21.8/index.html
         - General query
         - News article summariser
         - Answer as a certain character (e.g. Chainsawman Pochita)
-            - Joke feature, not sure where to go with this
 - **Notion node**
     - akr workspace > 2_BUNKA > Japanese vocab training
         - Return overall result of practice (which words ok, which words redo)
@@ -28,9 +27,13 @@ https://docs.python-telegram-bot.org/en/v21.8/index.html
     - Expense node
     - Sleep node
 - Expense node
-    - Analysis? Amount spent over each month, return .png of chart
+    - Analysis
+        - Amount spent over each month, return .png of chart
+    - Edit log
 - Sleep node
-    - Analysis?
+    - Analysis
+        - Average sleep start time
+    - Edit log
 
 --------------------------------------------------
 
@@ -41,8 +44,11 @@ https://docs.python-telegram-bot.org/en/v21.8/index.html
 ### /start
 Starts the bot and display opening message.
 
-### /help
+### /commands
 Displays available commands that starts a node/feature.
+
+### /about
+General description about the bot.
 
 --------------------------------------------------
 

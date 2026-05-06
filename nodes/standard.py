@@ -21,8 +21,8 @@ async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     username = user["username"]
     if username == master:
-        message = "| /news | /steam | /ai |\n"
-        message += "| /expense | /sleep | /notion |"
+        message = "/news | /steam | /ai\n"
+        message += "/expense | /sleep | /notion"
     else:
         message = "| /news |"
     await update.message.reply_text(message)

@@ -46,7 +46,7 @@ async def news_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         news_dict = json.load(file)
         if news_dict:
             SORT_ORDER = {"Business": 0, "World": 1, "Asia": 2, "East Asia": 3}
-            message = "Select the news category.\n/cancel to return to news node."
+            message = "Select news category"
             reply_keyboard = list(news_dict.keys())
             reply_keyboard.sort(key=lambda val : SORT_ORDER[val])
             reply_keyboard.append("/cancel")
@@ -54,7 +54,6 @@ async def news_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return CNA
         else:
-            print(f"> Error occurred, news_dict is empty")
             message = "Error occurred, returned to the main menu"
             await update.message.reply_text(message)
             return NEWSMENU
@@ -65,7 +64,7 @@ async def show_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
     last_modified = datetime.fromtimestamp(os.path.getmtime(cna_json_path)).strftime("%Y-%m-%d・%H:%M")
     topic = update.message.text
-    message = f"CNA - {topic}\nLast fetched {format_markdown(last_modified)}\n"
+    message = f"CNA ・ {topic}\nLast fetched {format_markdown(last_modified)}\n"
     
     for article in news_dict[topic]:
         title, link = format_markdown(article[0]), format_markdown(article[1])
@@ -78,7 +77,7 @@ async def show_cna(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def news_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     print("\n>> news.py > news_gn")
-    await update.message.reply_text("Getting news from Ground News...")
+    await update.message.reply_text("Fetching articles from Ground News...")
 
     # Check for .json file
     global gn_json_path
@@ -90,20 +89,19 @@ async def news_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         print("> Running scraper.py > parse_html_gn to get .json file...")
         await parse_html_gn()
     else:
-        print(f"> '{gn_json}' was last modified < {hours} hours ago, skipping scraping step.")
+        print(f"> '{gn_json}' was last modified < {hours} hours ago, skipping scraping step")
 
     with open(gn_json_path, 'r') as file:
         news_dict = json.load(file)
         if news_dict:
-            message = "Select the news category.\n/cancel to return to news node."
+            message = "Select news category"
             reply_keyboard = list(news_dict.keys())
             reply_keyboard.append("/cancel")
             reply_keyboard = [reply_keyboard]
             await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return GRND
         else:
-            print(f"> Error occurred, news_dict is empty.")
-            message = f"Error occurred, returning to news node."
+            message = f"Error occurred, returned to the main menu"
             await update.message.reply_text(message)
             return NEWSMENU
   
@@ -113,7 +111,7 @@ async def show_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
     last_modified = datetime.fromtimestamp(os.path.getmtime(gn_json_path)).strftime("%Y-%m-%d・%H:%M")
     topic = update.message.text
-    message = f"Ground News - {topic}\nLast fetched {format_markdown(last_modified)}\n"
+    message = f"Ground News ・ {topic}\nLast fetched {format_markdown(last_modified)}\n"
     
     for article in news_dict[topic]:
         title, link = format_markdown(article[0]), format_markdown(article[1])
@@ -126,7 +124,7 @@ async def show_gn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def news_nhk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     print("\n>> news.py > news_nhk")
-    await update.message.reply_text("Getting news from NHK Japan...")
+    await update.message.reply_text("Fetching articles from NHK Japan...")
 
     # Check for .json file
     global nhk_json_path
@@ -138,20 +136,19 @@ async def news_nhk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         print("> Running scraper.py > parse_html_nhk to get .json file...")
         await parse_html_nhk()
     else:
-        print(f"> '{nhk_json}' was last modified < {hours} hours ago, skipping scraping step.")
+        print(f"> '{nhk_json}' was last modified < {hours} hours ago, skipping scraping step")
 
     with open(nhk_json_path, 'r') as file:
         news_dict = json.load(file)
         if news_dict:
-            message = "Select the news category.\n/cancel to return to news node."
+            message = "Select news category"
             reply_keyboard = list(news_dict.keys())
             reply_keyboard.append("/cancel")
             reply_keyboard = [reply_keyboard]
             await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=False, one_time_keyboard=False, input_field_placeholder="Select category."))
             return NHK
         else:
-            print(f"> Error occurred, news_dict is empty.")
-            message = f"Error occurred, returning to news node."
+            message = f"Error occurred, returned to the main menu"
             await update.message.reply_text(message)
             return NEWSMENU
         
@@ -160,7 +157,7 @@ async def show_nhk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         news_dict = json.load(file)
     last_modified = datetime.fromtimestamp(os.path.getmtime(nhk_json_path)).strftime("%Y-%m-%d・%H:%M")
     topic = update.message.text
-    message = f"NHK Japan - {topic}\nLast fetched {format_markdown(last_modified)}\n"
+    message = f"NHK Japan ・ {topic}\nLast fetched {format_markdown(last_modified)}\n"
     for article in news_dict[topic]:
         title, link = format_markdown(article[0]), format_markdown(article[1])
         message += f"> [{title}]({link})\n\n"

@@ -45,7 +45,7 @@ async def steam_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         for game in games_played:
             recent_playtime_min += game["playtime_2weeks"]
-            message += f"> '{game["name"]}' for {round(game["playtime_2weeks"] / 60, 1)} hours\n"
+            message += f"・ '{game["name"]}' for {round(game["playtime_2weeks"] / 60, 1)} hours\n"
         recent_playtime_hour = round(recent_playtime_min / 60, 1)
         
         message += f"\nFor a total of {recent_playtime_hour} hours"
@@ -56,6 +56,8 @@ async def steam_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return STEAMMENU
 
 async def steam_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(">> steam.py > steam_wishlist")
+
     message = "Fetching wishlist info..."
     await update.message.reply_text(message)
 
@@ -77,22 +79,30 @@ async def steam_wishlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = f"Fetched {len(data)} games from your wishlist\n\n"
 
         i = 1
+        result = []
         for game in data.keys():
             name, price, discount = data[game]["name"], data[game]["price"], data[game]["discount"]
 
-            if name != '-' and price == '-':
-                message += f"{i}. '{name}', not released yet\n\n"
-            elif name != '-' and price != '-':
+            if name != '-' and price != '-':
                 price = price.replace("S", "")
-
-                if discount > 0:
-                    message += f"{i}. '{name}', {price}, {discount}% off\n\n"
-                else:
-                    message += f"{i}. '{name}', {price}\n\n"
+                result.append([name, price, discount])
+        
+        # Sort in order of discounted games, ascending price of games, games not released yet
+        result_sorted = sorted(result, key = lambda d: (-d[2], d[1]))
+        message = []
+        total_cost = 0 
+        for i in range(len(result_sorted)):
+            g = result_sorted[i]
+            if g[2] > 0:
+                message.append(f"{i+1}. {g[0]}, {g[1]}, {g[2]}% off")
+                total_cost += float(g[1][1:])
+            elif g[2] == "-":
+                message.append(f"{i+1}. {g[0]}, not released yet")
             else:
-                message += f"{i}. Something went wrong when fetching data on game appid '{game}'\n\n"
-            
-            i += 1       
+                message.append(f"{i+1}. {g[0]}, {g[1]}")
+                total_cost += float(g[1][1:])
+        message = "\n".join(message)
+        message += f"\n\nTotal cost: ${round(total_cost, 2)}"
     else:
         message = "Failed, returned to the main menu"
 
